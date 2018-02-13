@@ -11,79 +11,87 @@ import GameplayKit
 
 class GameScene: SKScene {
     
-    private var label : SKLabelNode?
-    private var spinnyNode : SKShapeNode?
+    // MARK : Sprites and variables of the scene
+    let zombie = SKSpriteNode(imageNamed: "zombie1")
+    var lastTouchedPosition = CGPoint.zero
     
     override func didMove(to view: SKView) {
+        backgroundColor = SKColor.black
         
-        // Get label node from scene and store it for use later
-        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
-        if let label = self.label {
-            label.alpha = 0.0
-            label.run(SKAction.fadeIn(withDuration: 2.0))
-        }
+        // set the background image of the game
+        let background = SKSpriteNode(imageNamed: "background1")
+        background.position = CGPoint(x: size.width/2, y: size.height/2)
+        background.zPosition = -1  // the default one is 0, we wanna be sure the background is behind everything else
+        addChild(background)
         
-        // Create shape node to use during mouse interaction
-        let w = (self.size.width + self.size.height) * 0.05
-        self.spinnyNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w * 0.3)
+        zombie.position = CGPoint(x: 400, y: 400)
+        //zombie.setScale(2) // multiply its width and height by two
+        addChild(zombie)
         
-        if let spinnyNode = self.spinnyNode {
-            spinnyNode.lineWidth = 2.5
-            
-            spinnyNode.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(Double.pi), duration: 1)))
-            spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-                                              SKAction.fadeOut(withDuration: 0.5),
-                                              SKAction.removeFromParent()]))
-        }
     }
     
+    // variables used to know the amount of time between two frames
+    var lastTimeUpdate : TimeInterval = 0 //save the time of the last update
+    var dt : TimeInterval = 0 // save the difference between the last update and the current one
     
-    func touchDown(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.green
-            self.addChild(n)
-        }
-    }
+    // this is the speed of the zombie per second
+    let zombieMovePtsPerSec : CGFloat = 480
+    // the velocity gives a vector so the zombie can go from a point A to a point B at its speed, at every frame it's multiplied to the time since the last frame to get exact distance the zombie should be moving
+    var velocity = CGPoint.zero
     
-    func touchMoved(toPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.blue
-            self.addChild(n)
-        }
-    }
-    
-    func touchUp(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.red
-            self.addChild(n)
-        }
-    }
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let label = self.label {
-            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-        }
-        
-        for t in touches { self.touchDown(atPoint: t.location(in: self)) }
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchMoved(toPoint: t.location(in: self)) }
-    }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
-    }
-    
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
-    }
-    
-    
+    // this function is called at each frame, it's a perfect place to make the sprites move
     override func update(_ currentTime: TimeInterval) {
-        // Called before each frame is rendered
+        
+        // if the zombie already arrived at the last touched position, it stops
+        if ((lastTouchedPosition-zombie.position).length() <= (zombieMovePtsPerSec * CGFloat(dt))) {
+            velocity = CGPoint.zero
+            lastTouchedPosition = zombie.position
+        } else {
+            move(sprite: zombie, velocity: velocity)
+            rotate(sprite: zombie, direction: velocity)
+        }
+        
+        if lastTimeUpdate > 0 {
+            dt = currentTime - lastTimeUpdate
+        } else {
+            dt = 0
+        }
+        lastTimeUpdate = currentTime
+        
+    }
+    
+    func move(sprite: SKSpriteNode, velocity: CGPoint) {
+        // velocity is in pts/sec and dt in sec, so we have the distance in pts the zombie should be moving
+        let amountToMove = velocity*CGFloat(dt)
+        sprite.position += amountToMove
+    }
+    
+    func rotate(sprite: SKSpriteNode, direction: CGPoint) {
+        sprite.zRotation = direction.angle
+    }
+    
+    func moveToward(sprite: SKSpriteNode, location: CGPoint) {
+        // calculating the vector of movement to go for the sprites from its position to location knowing its speed
+        let offset = location - sprite.position
+        let direction = offset.normalized()
+        velocity = direction*zombieMovePtsPerSec
+    }
+    
+    // detect a touch on the scene in order to make the zombie move their
+    func sceneTouched(touchLocation: CGPoint) {
+        lastTouchedPosition = touchLocation
+        moveToward(sprite: zombie, location: lastTouchedPosition)
+    }
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else {
+            return
+        }
+        sceneTouched(touchLocation: touch.location(in: self))
+    }
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else {
+            return
+        }
+        sceneTouched(touchLocation: touch.location(in: self))
     }
 }
