@@ -11,9 +11,18 @@ import GameplayKit
 
 class GameScene: SKScene {
     
-    // MARK : Sprites and variables of the scene
+    // MARK : Variables and constants
     let zombie = SKSpriteNode(imageNamed: "zombie1")
     var lastTouchedPosition = CGPoint.zero
+    // variables used to know the amount of time between two frames
+    var lastTimeUpdate : TimeInterval = 0 //save the time of the last update
+    var dt : TimeInterval = 0 // save the difference between the last update and the current one
+    // this is the speed of the zombie per second and its speed of rotation
+    let zombieMovePtsPerSec : CGFloat = 480
+    let zombieRotateRdsPerSec : CGFloat = .pi*2
+    // the velocity gives a vector so the zombie can go from a point A to a point B at its speed, at every frame it's multiplied to the time since the last frame to get exact distance the zombie should be moving
+    var velocity = CGPoint.zero
+    
     
     override func didMove(to view: SKView) {
         backgroundColor = SKColor.black
@@ -30,15 +39,6 @@ class GameScene: SKScene {
         
     }
     
-    // variables used to know the amount of time between two frames
-    var lastTimeUpdate : TimeInterval = 0 //save the time of the last update
-    var dt : TimeInterval = 0 // save the difference between the last update and the current one
-    
-    // this is the speed of the zombie per second
-    let zombieMovePtsPerSec : CGFloat = 480
-    // the velocity gives a vector so the zombie can go from a point A to a point B at its speed, at every frame it's multiplied to the time since the last frame to get exact distance the zombie should be moving
-    var velocity = CGPoint.zero
-    
     // this function is called at each frame, it's a perfect place to make the sprites move
     override func update(_ currentTime: TimeInterval) {
         
@@ -48,7 +48,7 @@ class GameScene: SKScene {
             lastTouchedPosition = zombie.position
         } else {
             move(sprite: zombie, velocity: velocity)
-            rotate(sprite: zombie, direction: velocity)
+            rotate(sprite: zombie, direction: velocity, rotateRadiansPerSec: zombieRotateRdsPerSec)
         }
         
         if lastTimeUpdate > 0 {
@@ -66,8 +66,15 @@ class GameScene: SKScene {
         sprite.position += amountToMove
     }
     
-    func rotate(sprite: SKSpriteNode, direction: CGPoint) {
-        sprite.zRotation = direction.angle
+    func rotate(sprite: SKSpriteNode, direction: CGPoint, rotateRadiansPerSec: CGFloat) {
+        // get the shortest angle between the the current angle (sprite.zRotation) and the target angle
+        let shortest = shortestAngleBetween(angle1: sprite.zRotation, angle2: velocity.angle)
+        // calculate the angle by which the sprite should rotate at this frame :
+        /*  it can be either the speed of rotation of the zombie * he time spent since the last frame
+         *  or the angle shortest, if this one is smaller than the first option
+         */
+        let amountToRotate = min(rotateRadiansPerSec * CGFloat(dt), abs(shortest))
+        sprite.zRotation += shortest.sign() * amountToRotate
     }
     
     func moveToward(sprite: SKSpriteNode, location: CGPoint) {
