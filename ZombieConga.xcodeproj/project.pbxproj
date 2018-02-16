@@ -21,6 +21,7 @@
 		9CD7582C2035DEF4008EF045 /* backgroundMusic.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 9CD758272035DEF4008EF045 /* backgroundMusic.mp3 */; };
 		9CD7582E203613B3008EF045 /* GameOverScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD7582D203613B3008EF045 /* GameOverScene.swift */; };
 		9CD75830203619BB008EF045 /* MenuScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD7582F203619BB008EF045 /* MenuScene.swift */; };
+		9CD75857203730D0008EF045 /* GLIMSTIC.TTF in Resources */ = {isa = PBXBuildFile; fileRef = 9CD75855203706A5008EF045 /* GLIMSTIC.TTF */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -168,6 +169,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9CD75857203730D0008EF045 /* GLIMSTIC.TTF in Resources */,
 				9CD758292035DEF4008EF045 /* lose.wav in Resources */,
 				9CA911FC20324A2500B28FB5 /* Main.storyboard in Resources */,
 				9CD7582C2035DEF4008EF045 /* backgroundMusic.mp3 in Resources */,

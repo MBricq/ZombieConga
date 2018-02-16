@@ -29,7 +29,8 @@ class GameScene: SKScene {
     var zombieAnimation : SKAction
     
     var lives = 5
-    let livesLabel = SKLabelNode(fontNamed: "Chalkduster")
+    let livesLabel = SKLabelNode(fontNamed: "Glimstick")
+    let catsLabel = SKLabelNode(fontNamed: "Glimstick")
     let playableRect: CGRect
     
     // this special node is the camera, which represents the visible part of the scene on the screen, it can be moved arround
@@ -96,13 +97,22 @@ class GameScene: SKScene {
         
         // set the labels
         livesLabel.text = "Lives: X"
-        livesLabel.fontColor = UIColor.black
+        livesLabel.fontColor = UIColor.red
         livesLabel.fontSize = 100
         livesLabel.zPosition = 105
         livesLabel.horizontalAlignmentMode = .left
         livesLabel.verticalAlignmentMode = .bottom
         livesLabel.position = CGPoint(x: -cameraRect.size.width/2 + 20, y: -cameraRect.size.height/2 + 20)
         cameraNode.addChild(livesLabel)
+        
+        catsLabel.text = "Cats: X"
+        catsLabel.fontColor = UIColor.red
+        catsLabel.fontSize = 100
+        catsLabel.zPosition = 105
+        catsLabel.horizontalAlignmentMode = .right
+        catsLabel.verticalAlignmentMode = .bottom
+        catsLabel.position = CGPoint(x: cameraRect.size.width/2 - 20 , y: -cameraRect.size.height/2 + 20)
+        cameraNode.addChild(catsLabel)
     }
     // --------------------------------------------------------------------------
     
@@ -128,14 +138,22 @@ class GameScene: SKScene {
         
         // make the cats follow the player
         moveTrain()
+        
+        // make the background moves
         moveCamera()
         
+        // check if the zombie is still in the screen
         boundsCheckZombie()
         
         // check if the player lost
         checkIfGameIsOver()
         
-        // uncomment to make the zombie always in middle of the screen (the screen follows it)
+        // update the label for the number of lives
+        livesLabel.text = "Lives: \(lives)"
+        
+        // the cats label is updated in checkIfGameIsOver()
+        
+        // uncomment to make the zombie always in middle of the screen (the camera follows it)
         //cameraNode.position = zombie.position
     }
     
@@ -344,7 +362,7 @@ class GameScene: SKScene {
             var hitEnemies: [SKSpriteNode] = []
             enumerateChildNodes(withName: "enemy") { (node, _) in
                 let enemy = node as! SKSpriteNode
-                if enemy.frame.insetBy(dx: 20, dy: 20).intersects(self.zombie.frame) {
+                if enemy.frame.insetBy(dx: 20, dy: 40).intersects(self.zombie.frame) {
                     hitEnemies.append(enemy)
                 }
             }
@@ -417,6 +435,9 @@ class GameScene: SKScene {
             enumerateChildNodes(withName: "train", using: { (_, _) in
                 numberOfCats += 1
             })
+            
+            catsLabel.text = "Cats: \(numberOfCats)"
+            
             if numberOfCats >= 15 && !gameOver {
                 gameOver = true
                 let gameOverScene = GameOverScene(size: self.size, won: true)
